@@ -42,7 +42,7 @@ export default function Home() {
           <span>🔒</span> Data is processed locally on your device
         </p>
         <p className="text-gray-600">
-          We are <span className="font-semibold text-gray-400">open source</span>
+          Check our <a href="https://github.com/KodePratham/YoutubeWrap" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-400 hover:underline">codebase</a>
         </p>
       </div>
     </main>
