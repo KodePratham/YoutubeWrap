@@ -18,6 +18,15 @@ export interface VideoStats {
   channelName: string;
   channelUrl: string;
   viewCount: number;
+  thumbnailUrl: string;
+}
+
+export interface DayNightStats {
+  morning: number;   // 5-12
+  afternoon: number; // 12-17
+  evening: number;   // 17-22
+  night: number;     // 22-5
+  persona: 'Early Bird' | 'Day Dreamer' | 'Evening Chiller' | 'Night Owl';
 }
 
 export interface YearComparison {
@@ -81,6 +90,15 @@ function isAdEntry(videoUrl: string, channelName: string, title: string): boolea
   }
   
   return false;
+}
+
+function getVideoId(url: string): string | null {
+  const match = url.match(/[?&]v=([^&]+)/);
+  return match ? match[1] : null;
+}
+
+function getThumbnailUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
 }
 
 export function parseWatchHistory(htmlContent: string): WatchEntry[] {
@@ -188,12 +206,14 @@ export function getTopVideos(entries: WatchEntry[], year: number, limit = 50): V
     if (existing) {
       existing.viewCount++;
     } else {
+      const videoId = getVideoId(entry.videoUrl);
       videoCounts.set(key, {
         title: entry.title,
         url: entry.videoUrl,
         channelName: entry.channelName,
         channelUrl: entry.channelUrl,
         viewCount: 1,
+        thumbnailUrl: videoId ? getThumbnailUrl(videoId) : '',
       });
     }
   });
@@ -202,6 +222,34 @@ export function getTopVideos(entries: WatchEntry[], year: number, limit = 50): V
   return Array.from(videoCounts.values())
     .sort((a, b) => b.viewCount - a.viewCount)
     .slice(0, limit);
+}
+
+function getDayNightStats(entries: WatchEntry[], year: number): DayNightStats {
+  const yearEntries = entries.filter(
+    (entry) => entry.watchedAt.getFullYear() === year
+  );
+
+  let morning = 0;
+  let afternoon = 0;
+  let evening = 0;
+  let night = 0;
+
+  yearEntries.forEach(entry => {
+    const hour = entry.watchedAt.getHours();
+    if (hour >= 5 && hour < 12) morning++;
+    else if (hour >= 12 && hour < 17) afternoon++;
+    else if (hour >= 17 && hour < 22) evening++;
+    else night++;
+  });
+
+  const max = Math.max(morning, afternoon, evening, night);
+  let persona: DayNightStats['persona'] = 'Day Dreamer';
+  if (max === morning) persona = 'Early Bird';
+  else if (max === afternoon) persona = 'Day Dreamer';
+  else if (max === evening) persona = 'Evening Chiller';
+  else persona = 'Night Owl';
+
+  return { morning, afternoon, evening, night, persona };
 }
 
 export function getYearlyStats(entries: WatchEntry[], year: number) {
@@ -214,6 +262,7 @@ export function getYearlyStats(entries: WatchEntry[], year: number) {
     uniqueChannels: new Set(yearEntries.map((e) => e.channelName.toLowerCase())).size,
     topChannels: getTopChannels(entries, year, 100),
     topVideos: getTopVideos(entries, year, 50),
+    dayNight: getDayNightStats(entries, year),
   };
 }
 

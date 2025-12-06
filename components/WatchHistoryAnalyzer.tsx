@@ -10,6 +10,7 @@ interface AnalysisResult {
   topChannels: ChannelStats[];
   topVideos: VideoStats[];
   comparison: YearComparison | null;
+  dayNight: { persona: string };
 }
 
 export default function WatchHistoryAnalyzer() {
@@ -32,10 +33,13 @@ export default function WatchHistoryAnalyzer() {
         setError('No watch history entries found. Make sure you uploaded the correct file.');
         return;
       }
-
       const stats = getYearlyStats(entries, 2025);
       const comparison = getYearComparison(entries, 2025);
-      setResult({ ...stats, comparison });
+      setResult({ 
+        ...stats, 
+        comparison 
+      });
+      setShowWrapped(true);
       setShowWrapped(true);
     } catch (e) {
       setError('Failed to parse the file. Please ensure it\'s a valid YouTube watch history HTML file.');
