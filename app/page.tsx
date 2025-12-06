@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-[#0f0f0f] text-white">
       <h1 className="text-5xl md:text-7xl font-bold mb-12 tracking-tighter">
-        <span className="text-[#ff0000]">YouTube</span>Wrap
+        Wrap<span className="text-[#ff0000]">YouTube</span>
       </h1>
       
       <WatchHistoryAnalyzer />
